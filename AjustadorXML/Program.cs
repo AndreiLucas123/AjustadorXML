@@ -11,18 +11,36 @@ namespace AjustadorXML
     {
 #if DEBUG
         const string FolderPath = "ExampleUse";
-        const string ToPath = "ExampleUse\\Antigos";
 #else
         static string FolderPath = Directory.GetCurrentDirectory();
-        static string ToPath = Path.Combine(Directory.GetCurrentDirectory(), "Antigos");
 #endif
         static int moveds = 0;
-        static bool dirChecked = false;
 
+
+        /// <summary>
+        /// Move um arquivo para o seu diretório certo
+        /// </summary>
+        static void MoveFileCorrectly(string fileName)
+        {
+            var lastModif = File.GetLastWriteTime(fileName);
+            string newDir = "CFe-" + DateTime.Now.Year;
+            newDir = Path.Combine(FolderPath, newDir);
+            // Ajusta para o ano
+            Directory.CreateDirectory(newDir);
+            // Ajusta para o mes
+            newDir = Path.Combine(newDir, "CFe-" + lastModif.ToString("MMMM"));
+            Directory.CreateDirectory(newDir);
+            var dest = Path.Combine(newDir, Path.GetFileName(fileName));
+            File.Move(fileName, dest);
+        }
+
+
+        /// <summary>
+        /// Função principal
+        /// </summary>
         static void Main(string[] args)
         {
             Console.WriteLine($"Preparando para mover arquivos");
-            Console.WriteLine(ToPath);
             // Se o diretorio existe
             if (Directory.Exists(FolderPath))
             {
@@ -33,21 +51,8 @@ namespace AjustadorXML
                     // Se o arquivo é um xml
                     if (Path.GetExtension(file) == ".xml")
                     {
-                        var lastModif = File.GetLastWriteTime(file);
-                        var timeStamp = DateTime.Now - lastModif;
-                        if (timeStamp.Days > 31)
-                        {
-                            if (!dirChecked)
-                            {
-                                dirChecked = true;
-                                Directory.CreateDirectory(ToPath);
-                            }
-                            var dest = Path.Combine(ToPath, Path.GetFileName(file));
-
-                            moveds++;
-                            Console.WriteLine($"Moving {moveds}");
-                            File.Move(file, dest);
-                        }
+                        MoveFileCorrectly(file);
+                        moveds++;
                     }
                 }
                 Console.WriteLine($"Arquivos movidos {moveds}");
